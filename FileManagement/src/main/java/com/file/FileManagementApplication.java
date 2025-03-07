@@ -8,8 +8,6 @@ public class FileManagementApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(FileManagementApplication.class, args);
-		
-		System.out.println("howr u");
-	}
+			}
 
 }
