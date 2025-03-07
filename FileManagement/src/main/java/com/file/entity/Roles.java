@@ -12,7 +12,7 @@ public class Roles {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String roleName;  // Example: Admin, Manager, Employee
+    private String roleName;  
 
     // Getters and Setters
     public Long getId() {
