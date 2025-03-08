@@ -19,7 +19,6 @@ public class Document {
 
 	
 
-	// Constructors
 	public Document() {
 	}
 
@@ -31,7 +30,6 @@ public class Document {
 		this.uploadedAt = uploadedAt;
 	}
 
-	// Getters and Setters
 	public Long getId() {
 		return id;
 	}
