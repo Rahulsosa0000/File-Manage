@@ -52,7 +52,7 @@ public class SecurityConfig {
             }))
             .csrf(csrf -> csrf.disable()) 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/login", "/api/refresh").permitAll()
+                .requestMatchers("/api/login", "/api/refresh","/api/**").permitAll()
                 .anyRequest().authenticated())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

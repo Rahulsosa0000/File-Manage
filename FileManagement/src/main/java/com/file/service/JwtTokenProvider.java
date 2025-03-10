@@ -57,7 +57,7 @@ public class JwtTokenProvider {
         String refreshToken = Jwts.builder()
                 .subject(email)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 2))
                 .signWith(getKey())
                 .compact();
         
