@@ -3,20 +3,31 @@ package com.file.services;
 import java.io.File;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.file.entity.Document;
+import com.file.entity.FilesLog;
 import com.file.repo.DocumentRepository;
+import com.file.repo.FilesLogRepository;
 import com.file.utils.FileEncrpt;
 
 @Service
 public class DocumentService {
+	
+	@Autowired
+	private FilesLogRepository filesLogRepository;
+	
+//	@Autowired
+//	private UsersRepository userRepository;
+	
     private final DocumentRepository documentRepository;
     private final String uploadDir = "D:/Documents/";
     private final String encryptionKey;
@@ -28,37 +39,56 @@ public class DocumentService {
             directory.mkdirs();
         }
 
-        // Generate Encryption Key (Store it securely)
         SecretKey secretKey = FileEncrpt.generateKey();
         encryptionKey = java.util.Base64.getEncoder().encodeToString(secretKey.getEncoded());
+        System.out.println("Save this key: " + encryptionKey);
+        
     }
 
-    public Document saveFile(MultipartFile file, String author) throws Exception {
-        // Generate a random file name
+    
+    public Document saveFile(MultipartFile file, String authorName) throws Exception {
+        
         String randomFileName = UUID.randomUUID().toString();
         File originalFile = new File(uploadDir + randomFileName);
         File encryptedFile = new File(uploadDir + "enc_" + randomFileName);
 
-        // Save the uploaded file temporarily
+        
         file.transferTo(originalFile);
 
-        // Encrypt the file
+        
         FileEncrpt.encryptFile(encryptionKey, originalFile, encryptedFile);
 
-        // Delete original file after encryption
+       
         originalFile.delete();
 
-        // Save document details in DB
+       
         Document document = new Document(
-                randomFileName,    // Store only the random name
+                randomFileName,
                 file.getContentType(),
                 file.getSize(),
-                author,
+                authorName, 
                 LocalDateTime.now()
         );
+        document = documentRepository.save(document); 
 
-        return documentRepository.save(document);
+        
+        FilesLog filesLog = new FilesLog(
+                null, 
+                document.getFileName(),
+                
+                LocalDateTime.now().toString(),
+                null, 
+                null, 
+                "0", 
+                String.valueOf(file.getSize()),
+                null
+        );
+        filesLogRepository.save(filesLog); 
+
+        return document;
     }
+
+
 
     public Optional<Document> getFile(Long id) {
         return documentRepository.findById(id);
@@ -75,4 +105,35 @@ public class DocumentService {
 
         return fileContent;
     }
+    
+    
+    public List<Document> getAllDocuments() {
+        return documentRepository.findAll();
+    }
+ 
+    public Document updateDocument(Long id, String author, LocalDateTime uploadAt, MultipartFile file) {
+        Optional<Document> optionalDoc = documentRepository.findById(id);
+        if (optionalDoc.isPresent()) {
+            Document existingDoc = optionalDoc.get();
+            existingDoc.setAuthor(author);
+            existingDoc.setUploadedAt(uploadAt);
+
+            if (file != null && !file.isEmpty()) {
+                existingDoc.setFileName(file.getOriginalFilename());
+                existingDoc.setFileType(file.getContentType());
+                existingDoc.setFileSize(file.getSize());
+            }
+
+            return documentRepository.save(existingDoc);
+        } else {
+            throw new RuntimeException("Document not found with ID: " + id);
+        }
+    }
+    
+    
+    public void deleteDocument(Long id) {
+        documentRepository.deleteById(id);
+    }
+    
+    
 }
